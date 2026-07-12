@@ -16,13 +16,6 @@ curl -fsSL https://raw.githubusercontent.com/piphase/incus-cn-blocker/main/insta
 curl -fsSL https://raw.githubusercontent.com/piphase/incus-cn-blocker/main/install.sh | sudo bash -s -- --enable
 ```
 
-如果访问 GitHub 不稳定，可以带代理：
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/piphase/incus-cn-blocker/main/install.sh | \
-  sudo bash -s -- --enable --proxy http://127.0.0.1:10808
-```
-
 如果你的桥接名不是默认的 `incusbr0`：
 
 ```bash
