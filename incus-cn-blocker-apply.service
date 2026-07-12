@@ -1,0 +1,13 @@
+[Unit]
+Description=Apply Incus China destination block rules from cache
+After=network-online.target nftables.service
+Wants=network-online.target
+ConditionPathExists=/var/lib/incus-cn-blocker/state.env
+ConditionPathExists=/var/lib/incus-cn-blocker/cn_ipv4.txt
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/incus-cn-blocker apply-cached --if-enabled
+
+[Install]
+WantedBy=multi-user.target

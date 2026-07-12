@@ -1,0 +1,10 @@
+[Unit]
+Description=Periodic China CIDR refresh for Incus destination blocking
+
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec=12h
+Persistent=true
+
+[Install]
+WantedBy=timers.target
