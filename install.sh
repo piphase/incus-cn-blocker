@@ -10,6 +10,7 @@ SCRIPT_URL="${SCRIPT_URL:-${RAW_BASE}/manage-incus-cn-block.sh}"
 
 ENABLE_AFTER_INSTALL=0
 ENABLE_ARGS=()
+TEMP_SCRIPT=""
 
 log() {
   printf '[install.sh] %s\n' "$*"
@@ -18,6 +19,12 @@ log() {
 die() {
   printf '[install.sh] ERROR: %s\n' "$*" >&2
   exit 1
+}
+
+cleanup() {
+  if [[ -n "${TEMP_SCRIPT:-}" && -f "${TEMP_SCRIPT:-}" ]]; then
+    rm -f "$TEMP_SCRIPT"
+  fi
 }
 
 have_command() {
@@ -167,18 +174,16 @@ parse_args() {
 }
 
 main() {
-  local temp_script
-
   parse_args "$@"
   : "${BIN_TARGET:=/usr/local/sbin/incus-cn-blocker}"
 
-  temp_script="$(mktemp /tmp/incus-cn-blocker.XXXXXX.sh)"
-  trap 'rm -f "$temp_script"' EXIT
+  TEMP_SCRIPT="$(mktemp /tmp/incus-cn-blocker.XXXXXX.sh)"
+  trap cleanup EXIT
 
   log "Downloading ${SCRIPT_URL}"
-  download_script "$temp_script"
-  chmod +x "$temp_script"
-  run_as_root "$temp_script"
+  download_script "$TEMP_SCRIPT"
+  chmod +x "$TEMP_SCRIPT"
+  run_as_root "$TEMP_SCRIPT"
 }
 
 main "$@"
