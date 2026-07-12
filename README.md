@@ -27,13 +27,6 @@ curl -fsSL https://raw.githubusercontent.com/piphase/incus-cn-blocker/main/insta
   sudo bash -s -- --bridge incusbr1
 ```
 
-如果访问 GitHub 不稳定，可以带代理：
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/piphase/incus-cn-blocker/main/install.sh | \
-  sudo bash -s -- --proxy http://127.0.0.1:10808
-```
-
 ## 交互菜单
 
 进入菜单后，主要选项是：
@@ -91,24 +84,17 @@ sudo /usr/local/sbin/incus-cn-blocker restore-initial
 `restore-initial` 是高影响操作。  
 如果你在第一次备份之后手工修改过宿主机其他防火墙规则，这些改动也会一起丢失。
 
-## 数据源和代理
+## 数据源
 
 默认数据源：
 
 `https://raw.githubusercontent.com/misakaio/chnroutes2/master/chnroutes.txt`
-
-如果你想在已安装脚本的情况下单独走代理更新：
-
-```bash
-sudo FETCH_PROXY=http://127.0.0.1:10808 /usr/local/sbin/incus-cn-blocker update --apply-if-enabled
-```
 
 ## 可调参数
 
 ```bash
 BRIDGE_NAME=incusbr1
 ROUTE_URL=https://example.com/chnroutes.txt
-FETCH_PROXY=http://127.0.0.1:10808
 TIMER_INTERVAL=6h
 CACHE_MIN_PREFIXES=1000
 STATE_DIR=/var/lib/incus-cn-blocker

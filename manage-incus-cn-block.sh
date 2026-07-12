@@ -14,7 +14,6 @@ BIN_TARGET="${BIN_TARGET:-/usr/local/sbin/incus-cn-blocker}"
 UNIT_DIR="${UNIT_DIR:-/etc/systemd/system}"
 BRIDGE_NAME="${BRIDGE_NAME:-incusbr0}"
 ROUTE_URL="${ROUTE_URL:-https://raw.githubusercontent.com/misakaio/chnroutes2/master/chnroutes.txt}"
-FETCH_PROXY="${FETCH_PROXY:-}"
 TIMER_INTERVAL="${TIMER_INTERVAL:-12h}"
 CACHE_MIN_PREFIXES="${CACHE_MIN_PREFIXES:-1000}"
 
@@ -198,15 +197,10 @@ fetch_routes() {
 
   if have_command curl; then
     local curl_args=(-fsSL --connect-timeout 15 --retry 3 --retry-delay 2 --max-time 180)
-    [[ -n "$FETCH_PROXY" ]] && curl_args+=(--proxy "$FETCH_PROXY")
     curl "${curl_args[@]}" "$ROUTE_URL" >"$raw_file"
   else
     local wget_args=(--quiet --output-document="$raw_file")
-    if [[ -n "$FETCH_PROXY" ]]; then
-      http_proxy="$FETCH_PROXY" https_proxy="$FETCH_PROXY" wget "${wget_args[@]}" "$ROUTE_URL"
-    else
-      wget "${wget_args[@]}" "$ROUTE_URL"
-    fi
+    wget "${wget_args[@]}" "$ROUTE_URL"
   fi
 
   grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/[0-9]+$' "$raw_file" | sort -u >"$tmp_file"
@@ -657,7 +651,6 @@ uninstall 可选项：
 环境变量覆盖：
   BRIDGE_NAME              默认值：$BRIDGE_NAME
   ROUTE_URL                默认值：$ROUTE_URL
-  FETCH_PROXY              示例：http://127.0.0.1:10808
   BIN_TARGET               默认值：$BIN_TARGET
   UNIT_DIR                 默认值：$UNIT_DIR
   STATE_DIR                默认值：$STATE_DIR

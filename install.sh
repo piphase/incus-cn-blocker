@@ -45,7 +45,6 @@ print_help() {
   --install-only           仅执行安装/初始化，不进入菜单
   --enable                 直接启用拦截，并强制刷新一次数据库
   --bridge NAME            设置 BRIDGE_NAME
-  --proxy URL              设置 FETCH_PROXY
   --route-url URL          覆盖中国 IPv4 数据源地址
   --timer-interval VALUE   覆盖 TIMER_INTERVAL，例如 6h
   --cache-min-prefixes N   覆盖 CACHE_MIN_PREFIXES
@@ -67,18 +66,12 @@ download_script() {
 
   if have_command curl; then
     local curl_args=(-fsSL --connect-timeout 15 --retry 3 --retry-delay 2 --max-time 180)
-    [[ -n "${FETCH_PROXY:-}" ]] && curl_args+=(--proxy "$FETCH_PROXY")
     curl "${curl_args[@]}" "$SCRIPT_URL" -o "$destination"
     return 0
   fi
 
   if have_command wget; then
-    if [[ -n "${FETCH_PROXY:-}" ]]; then
-      http_proxy="$FETCH_PROXY" https_proxy="$FETCH_PROXY" \
-        wget --quiet --output-document="$destination" "$SCRIPT_URL"
-    else
-      wget --quiet --output-document="$destination" "$SCRIPT_URL"
-    fi
+    wget --quiet --output-document="$destination" "$SCRIPT_URL"
     return 0
   fi
 
@@ -114,7 +107,7 @@ run_downloaded_script() {
 
   have_command sudo || die "当前需要 root 权限，请使用 sudo 运行，或先安装 sudo。"
 
-  sudo --preserve-env=BRIDGE_NAME,ROUTE_URL,FETCH_PROXY,TIMER_INTERVAL,CACHE_MIN_PREFIXES,STATE_DIR,BIN_TARGET,UNIT_DIR \
+  sudo --preserve-env=BRIDGE_NAME,ROUTE_URL,TIMER_INTERVAL,CACHE_MIN_PREFIXES,STATE_DIR,BIN_TARGET,UNIT_DIR \
     "$script_path" "${script_args[@]}"
 }
 
@@ -134,11 +127,6 @@ parse_args() {
         shift
         [[ $# -gt 0 ]] || die "缺少 --bridge 的参数值"
         export BRIDGE_NAME="$1"
-        ;;
-      --proxy)
-        shift
-        [[ $# -gt 0 ]] || die "缺少 --proxy 的参数值"
-        export FETCH_PROXY="$1"
         ;;
       --route-url)
         shift
