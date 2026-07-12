@@ -1,6 +1,6 @@
 # Incus CN Blocker
 
-这个项目用于阻止 Incus 容器主动访问中国大陆 IPv4 网段，同时尽量避免影响宿主机自身网络。
+这个项目用于阻止 Incus 容器主动访问中国大陆 IPv4 和 IPv6 网段，同时尽量避免影响宿主机自身网络。
 
 ## 一键使用
 
@@ -34,7 +34,7 @@ curl -fsSL https://raw.githubusercontent.com/piphase/incus-cn-blocker/main/insta
 - `1` 安装/更新本地脚本与定时任务
 - `2` 启用拦截
 - `3` 关闭拦截
-- `4` 更新中国 IPv4 数据库
+- `4` 更新中国 IPv4/IPv6 数据库
 - `5` 查看状态
 - `6` 恢复初始 `nftables` 配置
 - `99` 卸载
@@ -46,7 +46,7 @@ curl -fsSL https://raw.githubusercontent.com/piphase/incus-cn-blocker/main/insta
 - 第一次运行时先自动备份完整 `nftables` 规则
 - 后续只维护一张自定义表：`table inet incus_cn_block`
 - 既支持中文交互菜单，也支持命令行子命令
-- 可选 `systemd timer` 定时更新中国 IPv4 数据库
+- 可选 `systemd timer` 定时更新中国 IPv4/IPv6 数据库
 
 ## 文件说明
 
@@ -57,9 +57,9 @@ curl -fsSL https://raw.githubusercontent.com/piphase/incus-cn-blocker/main/insta
 - `incus-cn-blocker-apply.service`
   开机后用缓存重新应用规则
 - `incus-cn-blocker-update.service`
-  刷新中国 IPv4 数据库
+  刷新中国 IPv4/IPv6 数据库
 - `incus-cn-blocker-update.timer`
-  每 12 小时自动刷新一次数据库
+  每 12 小时自动刷新一次双栈数据库
 
 ## 常用命令
 
@@ -78,7 +78,7 @@ sudo /usr/local/sbin/incus-cn-blocker restore-initial
 
 - `enable` 只会创建或替换 `table inet incus_cn_block`
 - `disable` 只会删除这张自定义表
-- `update` 只会更新中国 IPv4 数据库，并在当前状态为已启用时重新应用
+- `update` 只会更新中国 IPv4/IPv6 数据库，并在当前状态为已启用时重新应用
 - `restore-initial` 会用第一次备份的完整规则覆盖当前整套 `nftables`
 
 `restore-initial` 是高影响操作。  
@@ -88,15 +88,20 @@ sudo /usr/local/sbin/incus-cn-blocker restore-initial
 
 默认数据源：
 
-`https://raw.githubusercontent.com/misakaio/chnroutes2/master/chnroutes.txt`
+- IPv4：`https://raw.githubusercontent.com/misakaio/chnroutes2/master/chnroutes.txt`
+- IPv6：`https://ftp.apnic.net/stats/apnic/delegated-apnic-latest`
 
 ## 可调参数
 
 ```bash
 BRIDGE_NAME=incusbr1
 ROUTE_URL=https://example.com/chnroutes.txt
+ROUTE_V4_URL=https://example.com/chnroutes-v4.txt
+ROUTE_V6_URL=https://example.com/delegated-apnic-latest
 TIMER_INTERVAL=6h
 CACHE_MIN_PREFIXES=1000
+CACHE_MIN_V4_PREFIXES=1000
+CACHE_MIN_V6_PREFIXES=500
 STATE_DIR=/var/lib/incus-cn-blocker
 BIN_TARGET=/usr/local/sbin/incus-cn-blocker
 UNIT_DIR=/etc/systemd/system
@@ -111,7 +116,7 @@ curl -fsSL https://raw.githubusercontent.com/piphase/incus-cn-blocker/main/insta
 
 ## 当前边界
 
-- 当前版本只处理 IPv4，不处理 IPv6
-- 当前版本更新的是中国 IPv4 CIDR 列表，不是 MaxMind 之类的 GeoIP MMDB
+- 当前版本同时处理 IPv4 和 IPv6
+- 当前版本的 IPv4 使用聚合后的中国 CIDR 列表，IPv6 使用 APNIC 官方分配前缀文件
 - 中国网站如果走海外 CDN 节点，单靠这套 IP 级拦截无法完全覆盖
 - 没有做“自动回滚计时器”，因为默认规则只动 `forward` 链，已经尽量压低爆炸半径

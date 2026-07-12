@@ -1,5 +1,5 @@
 [Unit]
-Description=Refresh China CIDR cache for Incus destination blocking
+Description=Refresh China IPv4 and IPv6 cache for Incus destination blocking
 After=network-online.target
 Wants=network-online.target
 

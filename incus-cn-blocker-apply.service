@@ -3,7 +3,6 @@ Description=Apply Incus China destination block rules from cache
 After=network-online.target nftables.service
 Wants=network-online.target
 ConditionPathExists=/var/lib/incus-cn-blocker/state.env
-ConditionPathExists=/var/lib/incus-cn-blocker/cn_ipv4.txt
 
 [Service]
 Type=oneshot

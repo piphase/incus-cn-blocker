@@ -43,11 +43,15 @@ print_help() {
 可选项：
   --menu                   下载后直接进入交互菜单（默认行为）
   --install-only           仅执行安装/初始化，不进入菜单
-  --enable                 直接启用拦截，并强制刷新一次数据库
+  --enable                 直接启用双栈拦截，并强制刷新一次数据库
   --bridge NAME            设置 BRIDGE_NAME
-  --route-url URL          覆盖中国 IPv4 数据源地址
+  --route-url URL          兼容别名，等同于 --route-v4-url
+  --route-v4-url URL       覆盖中国 IPv4 数据源地址
+  --route-v6-url URL       覆盖中国 IPv6 数据源地址
   --timer-interval VALUE   覆盖 TIMER_INTERVAL，例如 6h
-  --cache-min-prefixes N   覆盖 CACHE_MIN_PREFIXES
+  --cache-min-prefixes N   兼容别名，等同于 --cache-min-v4-prefixes
+  --cache-min-v4-prefixes N 覆盖 CACHE_MIN_V4_PREFIXES
+  --cache-min-v6-prefixes N 覆盖 CACHE_MIN_V6_PREFIXES
   --state-dir PATH         覆盖 STATE_DIR
   --bin-target PATH        覆盖 BIN_TARGET
   --unit-dir PATH          覆盖 UNIT_DIR
@@ -122,13 +126,13 @@ run_downloaded_script() {
   have_command sudo || die "当前需要 root 权限，请使用 sudo 运行，或先安装 sudo。"
 
   if [[ "$RUN_MODE" == "menu" && -r /dev/tty ]]; then
-    sudo --preserve-env=BRIDGE_NAME,ROUTE_URL,TIMER_INTERVAL,CACHE_MIN_PREFIXES,STATE_DIR,BIN_TARGET,UNIT_DIR \
+    sudo --preserve-env=BRIDGE_NAME,ROUTE_URL,ROUTE_V4_URL,ROUTE_V6_URL,TIMER_INTERVAL,CACHE_MIN_PREFIXES,CACHE_MIN_V4_PREFIXES,CACHE_MIN_V6_PREFIXES,STATE_DIR,BIN_TARGET,UNIT_DIR \
       "$script_path" "${script_args[@]}" </dev/tty >/dev/tty 2>/dev/tty
   elif [[ -r /dev/tty ]]; then
-    sudo --preserve-env=BRIDGE_NAME,ROUTE_URL,TIMER_INTERVAL,CACHE_MIN_PREFIXES,STATE_DIR,BIN_TARGET,UNIT_DIR \
+    sudo --preserve-env=BRIDGE_NAME,ROUTE_URL,ROUTE_V4_URL,ROUTE_V6_URL,TIMER_INTERVAL,CACHE_MIN_PREFIXES,CACHE_MIN_V4_PREFIXES,CACHE_MIN_V6_PREFIXES,STATE_DIR,BIN_TARGET,UNIT_DIR \
       "$script_path" "${script_args[@]}" </dev/tty
   else
-    sudo --preserve-env=BRIDGE_NAME,ROUTE_URL,TIMER_INTERVAL,CACHE_MIN_PREFIXES,STATE_DIR,BIN_TARGET,UNIT_DIR \
+    sudo --preserve-env=BRIDGE_NAME,ROUTE_URL,ROUTE_V4_URL,ROUTE_V6_URL,TIMER_INTERVAL,CACHE_MIN_PREFIXES,CACHE_MIN_V4_PREFIXES,CACHE_MIN_V6_PREFIXES,STATE_DIR,BIN_TARGET,UNIT_DIR \
       "$script_path" "${script_args[@]}"
   fi
 }
@@ -155,6 +159,16 @@ parse_args() {
         [[ $# -gt 0 ]] || die "缺少 --route-url 的参数值"
         export ROUTE_URL="$1"
         ;;
+      --route-v4-url)
+        shift
+        [[ $# -gt 0 ]] || die "缺少 --route-v4-url 的参数值"
+        export ROUTE_V4_URL="$1"
+        ;;
+      --route-v6-url)
+        shift
+        [[ $# -gt 0 ]] || die "缺少 --route-v6-url 的参数值"
+        export ROUTE_V6_URL="$1"
+        ;;
       --timer-interval)
         shift
         [[ $# -gt 0 ]] || die "缺少 --timer-interval 的参数值"
@@ -164,6 +178,16 @@ parse_args() {
         shift
         [[ $# -gt 0 ]] || die "缺少 --cache-min-prefixes 的参数值"
         export CACHE_MIN_PREFIXES="$1"
+        ;;
+      --cache-min-v4-prefixes)
+        shift
+        [[ $# -gt 0 ]] || die "缺少 --cache-min-v4-prefixes 的参数值"
+        export CACHE_MIN_V4_PREFIXES="$1"
+        ;;
+      --cache-min-v6-prefixes)
+        shift
+        [[ $# -gt 0 ]] || die "缺少 --cache-min-v6-prefixes 的参数值"
+        export CACHE_MIN_V6_PREFIXES="$1"
         ;;
       --state-dir)
         shift

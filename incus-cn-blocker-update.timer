@@ -1,5 +1,5 @@
 [Unit]
-Description=Periodic China CIDR refresh for Incus destination blocking
+Description=Periodic China IPv4 and IPv6 refresh for Incus destination blocking
 
 [Timer]
 OnBootSec=10min
