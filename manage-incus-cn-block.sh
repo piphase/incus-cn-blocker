@@ -56,17 +56,21 @@ tty_available() {
   [[ -r /dev/tty ]]
 }
 
+connect_tty() {
+  tty_available || die "当前没有可用终端，无法进入交互模式。"
+  exec </dev/tty >/dev/tty 2>/dev/tty
+}
+
 prompt_read() {
   local target_var="$1"
   local prompt_text="${2:-}"
   local input_value=""
 
-  if tty_available; then
-    read -r -p "$prompt_text" input_value </dev/tty || return 1
-  else
-    read -r -p "$prompt_text" input_value || return 1
+  if [[ -n "$prompt_text" ]]; then
+    printf '%s' "$prompt_text"
   fi
 
+  IFS= read -r input_value || return 1
   printf -v "$target_var" '%s' "$input_value"
 }
 
@@ -523,7 +527,9 @@ confirm_restore() {
 这意味着：第一次备份之后你手工改过的其他防火墙规则，也会一起丢失。
 如果确认继续，请输入：恢复
 EOF
-  prompt_read answer ""
+  if ! prompt_read answer ""; then
+    die "无法读取恢复确认输入。"
+  fi
   [[ "$answer" == "恢复" ]] || die "已取消恢复操作。"
 }
 
@@ -602,7 +608,9 @@ command_uninstall() {
 如果确认继续，请输入：卸载
 EOF
     local answer
-    prompt_read answer ""
+    if ! prompt_read answer ""; then
+      die "无法读取卸载确认输入。"
+    fi
     [[ "$answer" == "卸载" ]] || die "已取消卸载操作。"
   fi
 
@@ -680,7 +688,9 @@ EOF
 
 pause_return() {
   local dummy=""
-  prompt_read dummy "按回车键返回菜单..."
+  if ! prompt_read dummy "按回车键返回菜单..."; then
+    die "无法读取回车输入。"
+  fi
 }
 
 show_menu() {
@@ -698,7 +708,9 @@ Incus CN Blocker 交互菜单
 0) 退出
 EOF
 
-    prompt_read choice "请选择操作序号： "
+    if ! prompt_read choice "请选择操作序号： "; then
+      die "无法读取菜单输入，请确认当前终端支持交互。"
+    fi
     case "$choice" in
       1) command_install; pause_return ;;
       2) command_enable; pause_return ;;
@@ -718,6 +730,7 @@ main() {
 
   case "$command" in
     "")
+      connect_tty
       prepare_interactive_session
       show_menu
       ;;

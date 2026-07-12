@@ -109,7 +109,9 @@ run_downloaded_script() {
   ensure_terminal_for_menu
 
   if [[ ${EUID:-$(id -u)} -eq 0 ]]; then
-    if [[ -r /dev/tty ]]; then
+    if [[ "$RUN_MODE" == "menu" && -r /dev/tty ]]; then
+      "$script_path" "${script_args[@]}" </dev/tty >/dev/tty 2>/dev/tty
+    elif [[ -r /dev/tty ]]; then
       "$script_path" "${script_args[@]}" </dev/tty
     else
       "$script_path" "${script_args[@]}"
@@ -119,7 +121,10 @@ run_downloaded_script() {
 
   have_command sudo || die "当前需要 root 权限，请使用 sudo 运行，或先安装 sudo。"
 
-  if [[ -r /dev/tty ]]; then
+  if [[ "$RUN_MODE" == "menu" && -r /dev/tty ]]; then
+    sudo --preserve-env=BRIDGE_NAME,ROUTE_URL,TIMER_INTERVAL,CACHE_MIN_PREFIXES,STATE_DIR,BIN_TARGET,UNIT_DIR \
+      "$script_path" "${script_args[@]}" </dev/tty >/dev/tty 2>/dev/tty
+  elif [[ -r /dev/tty ]]; then
     sudo --preserve-env=BRIDGE_NAME,ROUTE_URL,TIMER_INTERVAL,CACHE_MIN_PREFIXES,STATE_DIR,BIN_TARGET,UNIT_DIR \
       "$script_path" "${script_args[@]}" </dev/tty
   else
