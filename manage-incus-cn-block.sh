@@ -52,6 +52,24 @@ have_command() {
   command -v "$1" >/dev/null 2>&1
 }
 
+tty_available() {
+  [[ -r /dev/tty ]]
+}
+
+prompt_read() {
+  local target_var="$1"
+  local prompt_text="${2:-}"
+  local input_value=""
+
+  if tty_available; then
+    read -r -p "$prompt_text" input_value </dev/tty || return 1
+  else
+    read -r -p "$prompt_text" input_value || return 1
+  fi
+
+  printf -v "$target_var" '%s' "$input_value"
+}
+
 ensure_dirs() {
   install -d -m 0755 "$STATE_DIR"
 }
@@ -505,7 +523,7 @@ confirm_restore() {
 这意味着：第一次备份之后你手工改过的其他防火墙规则，也会一起丢失。
 如果确认继续，请输入：恢复
 EOF
-  read -r answer
+  prompt_read answer ""
   [[ "$answer" == "恢复" ]] || die "已取消恢复操作。"
 }
 
@@ -584,7 +602,7 @@ command_uninstall() {
 如果确认继续，请输入：卸载
 EOF
     local answer
-    read -r answer
+    prompt_read answer ""
     [[ "$answer" == "卸载" ]] || die "已取消卸载操作。"
   fi
 
@@ -662,7 +680,7 @@ EOF
 
 pause_return() {
   local dummy=""
-  read -r -p "按回车键返回菜单..." dummy
+  prompt_read dummy "按回车键返回菜单..."
 }
 
 show_menu() {
@@ -680,7 +698,7 @@ Incus CN Blocker 交互菜单
 0) 退出
 EOF
 
-    read -r -p "请选择操作序号： " choice
+    prompt_read choice "请选择操作序号： "
     case "$choice" in
       1) command_install; pause_return ;;
       2) command_enable; pause_return ;;
