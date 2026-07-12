@@ -95,20 +95,37 @@ build_script_args() {
   esac
 }
 
+ensure_terminal_for_menu() {
+  if [[ "$RUN_MODE" == "menu" && ! -r /dev/tty ]]; then
+    die "当前启动方式没有可用终端，无法进入交互菜单。请直接在终端里运行，或改用 --install-only / --enable。"
+  fi
+}
+
 run_downloaded_script() {
   local script_path="$1"
   local -a script_args=()
   mapfile -t script_args < <(build_script_args)
 
+  ensure_terminal_for_menu
+
   if [[ ${EUID:-$(id -u)} -eq 0 ]]; then
-    "$script_path" "${script_args[@]}"
+    if [[ -r /dev/tty ]]; then
+      "$script_path" "${script_args[@]}" </dev/tty
+    else
+      "$script_path" "${script_args[@]}"
+    fi
     return 0
   fi
 
   have_command sudo || die "当前需要 root 权限，请使用 sudo 运行，或先安装 sudo。"
 
-  sudo --preserve-env=BRIDGE_NAME,ROUTE_URL,TIMER_INTERVAL,CACHE_MIN_PREFIXES,STATE_DIR,BIN_TARGET,UNIT_DIR \
-    "$script_path" "${script_args[@]}"
+  if [[ -r /dev/tty ]]; then
+    sudo --preserve-env=BRIDGE_NAME,ROUTE_URL,TIMER_INTERVAL,CACHE_MIN_PREFIXES,STATE_DIR,BIN_TARGET,UNIT_DIR \
+      "$script_path" "${script_args[@]}" </dev/tty
+  else
+    sudo --preserve-env=BRIDGE_NAME,ROUTE_URL,TIMER_INTERVAL,CACHE_MIN_PREFIXES,STATE_DIR,BIN_TARGET,UNIT_DIR \
+      "$script_path" "${script_args[@]}"
+  fi
 }
 
 parse_args() {
