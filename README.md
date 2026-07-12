@@ -2,6 +2,34 @@
 
 项目用于阻止 Incus 容器主动访问中国大陆 IPv4 网段，同时尽量避免影响宿主机自身网络。
 
+## 一键安装
+
+只安装，不立即启用：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/piphase/incus-cn-blocker/main/install.sh | sudo bash
+```
+
+安装后立即启用并拉取最新 CIDR：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/piphase/incus-cn-blocker/main/install.sh | sudo bash -s -- --enable
+```
+
+如果访问 GitHub 不稳定，可以带代理：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/piphase/incus-cn-blocker/main/install.sh | \
+  sudo bash -s -- --enable --proxy http://127.0.0.1:10808
+```
+
+如果你的桥接名不是默认的 `incusbr0`：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/piphase/incus-cn-blocker/main/install.sh | \
+  sudo bash -s -- --enable --bridge incusbr1
+```
+
 ## 设计目标
 
 - 只在 `forward` 链里处理从 `incusbr0` 进入的流量，不碰宿主机的 `input` / `output`
@@ -12,6 +40,8 @@
 
 ## 文件说明
 
+- `install.sh`
+  Linux 一键安装入口。适合 `curl | bash` 直接执行
 - `manage-incus-cn-block.sh`
   主脚本，支持安装、启用、关闭、更新、状态查询、恢复初始规则、卸载
 - `incus-cn-blocker-apply.service`
@@ -21,7 +51,7 @@
 - `incus-cn-blocker-update.timer`
   每 12 小时自动刷新一次缓存
 
-## 快速开始
+## 本地快速开始
 
 ```bash
 chmod +x ./manage-incus-cn-block.sh
@@ -39,10 +69,11 @@ sudo ./manage-incus-cn-block.sh
 ## 常用命令
 
 ```bash
-sudo ./manage-incus-cn-block.sh enable
-sudo ./manage-incus-cn-block.sh disable
-sudo ./manage-incus-cn-block.sh update --apply-if-enabled
-sudo ./manage-incus-cn-block.sh restore-initial
+sudo /usr/local/sbin/incus-cn-blocker enable
+sudo /usr/local/sbin/incus-cn-blocker disable
+sudo /usr/local/sbin/incus-cn-blocker update --apply-if-enabled
+sudo /usr/local/sbin/incus-cn-blocker restore-initial
+sudo /usr/local/sbin/incus-cn-blocker status
 ```
 
 ## 安全模型
@@ -63,13 +94,14 @@ sudo ./manage-incus-cn-block.sh restore-initial
 如果访问 GitHub 不稳定，可以加代理环境变量：
 
 ```bash
-sudo FETCH_PROXY=http://127.0.0.1:10808 ./manage-incus-cn-block.sh enable
+sudo FETCH_PROXY=http://127.0.0.1:10808 /usr/local/sbin/incus-cn-blocker enable
 ```
 
 也可以在安装时就指定：
 
 ```bash
-sudo FETCH_PROXY=http://127.0.0.1:10808 ./manage-incus-cn-block.sh install
+curl -fsSL https://raw.githubusercontent.com/piphase/incus-cn-blocker/main/install.sh | \
+  sudo bash -s -- --proxy http://127.0.0.1:10808
 ```
 
 ## 可调参数
@@ -87,7 +119,8 @@ UNIT_DIR=/etc/systemd/system
 示例：
 
 ```bash
-sudo BRIDGE_NAME=incusbr1 TIMER_INTERVAL=6h ./manage-incus-cn-block.sh install
+curl -fsSL https://raw.githubusercontent.com/piphase/incus-cn-blocker/main/install.sh | \
+  sudo bash -s -- --bridge incusbr1 --timer-interval 6h
 ```
 
 ## 当前边界
